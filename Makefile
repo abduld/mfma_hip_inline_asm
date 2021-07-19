@@ -3,9 +3,9 @@ ifeq (,$(HIP_PATH))
 	HIP_PATH=../../..
 endif
 
-HIPCC=$(HIP_PATH)/bin/hipcc
+HIPCC=$(HIP_PATH)/bin/hipcc --cuda-gpu-arch=gfx908 
 
-TARGET=hcc
+TARGET=hcc 
 
 SOURCES = mfma_inline_asm.cpp
 OBJECTS = $(SOURCES:.cpp=.o)

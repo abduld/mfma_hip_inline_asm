@@ -14,8 +14,6 @@
 #define THREADS_PER_WAVE 64
 typedef float mfma_float16 __attribute__((ext_vector_type(16)));
 typedef __fp16 mfma_half4 __attribute__((ext_vector_type(4)));
-extern "C" __device__ mfma_float16 __llvm_amdgcn_mfma_f32_32x32x8f16(mfma_half4, mfma_half4, mfma_float16, int, int, int) __asm("llvm.amdgcn.mfma.f32.32x32x8f16");
-extern "C" __device__ mfma_float16 __llvm_amdgcn_mfma_f32_32x32x2f32(float, float, mfma_float16, int, int, int) __asm("llvm.amdgcn.mfma.f32.32x32x2f32");
 
 
   /******************************************/
@@ -137,7 +135,7 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
   /* Allocate Resources                     */
   /******************************************/
 
-  unsigned int serial = hc_get_workitem_id(0);
+  unsigned int serial = threadIdx.x;
   unsigned int sgId = serial / (WV0I*WV1J*THREADS_PER_WAVE);
   unsigned int wave_serial = serial % THREADS_PER_WAVE;
   unsigned int wvId = serial / (THREADS_PER_WAVE*LOCAL_SPLITU);
@@ -213,10 +211,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
 
   /* global read addresses: work-group */
 
-  unsigned int wg0I = hc_get_group_id(0);
-  unsigned int wg1J = hc_get_group_id(1);
-  unsigned int nwg0I = hc_get_num_groups(0);
-  unsigned int nwg1J = hc_get_num_groups(1);
+  unsigned int wg0I = blockIdx.x;
+  unsigned int wg1J = blockIdx.y;
+  unsigned int nwg0I = gridDim.x;
+  unsigned int nwg1J = gridDim.y;
 
 
   /* global read addresses: tile offset assignment a */
@@ -241,7 +239,7 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
 
   /* global read addresses: other free assignments */
 
-  unsigned int wgK = ( hc_get_group_id(2) ) % sizeK;
+  unsigned int wgK = ( blockIdx.z ) % sizeK;
 
 
   /* global read addresses: tile offsets a */
@@ -821,10 +819,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
 
     /* local read increment b */
     localReadB += LOCAL_SPLITU*MFMA_L*(MT1J+PAD);
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
 
@@ -844,10 +842,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
 
     /* local read increment b */
     localReadB += LOCAL_SPLITU*MFMA_L*(MT1J+PAD);
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
 
@@ -867,10 +865,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
 
     /* local read increment b */
     localReadB += LOCAL_SPLITU*MFMA_L*(MT1J+PAD);
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
 
@@ -964,10 +962,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
 
     /* local read init pointers b */
     localReadB = (DATA_TYPE *)(localMemory + localReadOffsetB);
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
 
@@ -1009,10 +1007,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
     localReadB += LOCAL_SPLITU*MFMA_L*(MT1J+PAD);
 
 
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
 
@@ -1041,10 +1039,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
     localReadB += LOCAL_SPLITU*MFMA_L*(MT1J+PAD);
 
 
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
 
@@ -1073,10 +1071,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
     localReadB += LOCAL_SPLITU*MFMA_L*(MT1J+PAD);
 
 
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
 
@@ -1105,10 +1103,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
     localReadB += LOCAL_SPLITU*MFMA_L*(MT1J+PAD);
 
 
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
   } // end unroll
@@ -1301,10 +1299,10 @@ __global__ void Cijk_Ailk_Bljk_SB_MT64x64x8_SE_K1(
     localReadB += LOCAL_SPLITU*MFMA_L*(MT1J+PAD);
 
 
-    rC[0] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
-    rC[1] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
-    rC[2] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
-    rC[3] = __llvm_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
+    rC[0] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[0], rC[0],0,0,0 );
+    rC[1] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[0], rC[1],0,0,0 );
+    rC[2] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[0], rB[1], rC[2],0,0,0 );
+    rC[3] = __builtin_amdgcn_mfma_f32_32x32x2f32(rA[1], rB[1], rC[3],0,0,0 );
 
 
   }

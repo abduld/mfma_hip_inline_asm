@@ -5,7 +5,7 @@ endif
 
 HIPCC=$(HIP_PATH)/bin/hipcc
 
-TARGET=hcc
+TARGET=hcc 
 
 SOURCES = sgemm_mfma_small_test.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -17,7 +17,7 @@ EXECUTABLE=./sgemm_mfma_small_test
 
 all: $(EXECUTABLE) test
 
-CXXFLAGS =-g
+CXXFLAGS =-g --cuda-gpu-arch=gfx908
 CXX=$(HIPCC)
 
 
